@@ -124,25 +124,41 @@ add_shortcode('seller_form', 'seller_form_shortcode');
 
 // Função para processar o formulário
 function process_seller_form() {
-  if (isset($_POST['submit_seller_form'])) {
-      $seller = select_seller_by_seller_table();
-      
-      $to = 'lucasdantas.rdmarketingdigital@gmail.com';
-      $subject = 'Novo Lead do Formulário';
-      $message = "Serviço: {$_POST['service']}\n";
-      $message .= "Nome: {$_POST['name']}\n";
-      $message .= "Telefone: {$_POST['phone']}\n";
-      $message .= "Email: {$_POST['email']}\n";
-      $message .= "UTM Source: {$_POST['utm_source']}\n";
-      $message .= "UTM Medium: {$_POST['utm_medium']}\n";
-      $message .= "UTM Campaign: {$_POST['utm_campaign']}\n";
-      $message .= "UTM Content: {$_POST['utm_content']}\n";
-      $message .= "UTM Term: {$_POST['utm_term']}\n";
-      $message .= "Vendedor: $seller\n";
-      
-      $headers = ['Content-Type: text/plain; charset=UTF-8'];
-      
-      wp_mail($to, $subject, $message, $headers);
-  }
+    if (isset($_POST['submit_seller_form'])) {
+        $seller = select_seller_by_seller_table();
+
+        $to = 'josetiago.ramos@rdexclusive.com.br'; 
+        $cc = 'lucasdantas.rdmarketingdigital@gmail.com';
+        
+        $subject = 'Novo Lead do Formulário';
+        $message = "Serviço: {$_POST['service']}\n";
+        $message .= "Nome: {$_POST['name']}\n";
+        $message .= "Telefone: {$_POST['phone']}\n";
+        $message .= "Email: {$_POST['email']}\n";
+        $message .= "UTM Source: {$_POST['utm_source']}\n";
+        $message .= "UTM Medium: {$_POST['utm_medium']}\n";
+        $message .= "UTM Campaign: {$_POST['utm_campaign']}\n";
+        $message .= "UTM Content: {$_POST['utm_content']}\n";
+        $message .= "UTM Term: {$_POST['utm_term']}\n";
+        $message .= "Vendedor: $seller\n";
+        
+        $headers = [
+            'Content-Type: text/plain; charset=UTF-8',
+            'Cc: ' . $cc // Adiciona o e-mail em cópia
+        ];
+        
+        wp_mail($to, $subject, $message, $headers);
+        
+        // Redireciona para a página de agendamento com base no vendedor
+        $redirect_url = site_url("/agendamento?vendedor=" . strtolower($seller));
+        wp_redirect($redirect_url);
+        exit();
+    }
 }
+
 add_action('init', 'process_seller_form');
+
+function custom_mail_sender_name($original_email_from) {
+  return 'Você Europeu'; // Nome do remetente desejado
+}
+add_filter('wp_mail_from_name', 'custom_mail_sender_name');
