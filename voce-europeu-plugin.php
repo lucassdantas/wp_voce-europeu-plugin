@@ -91,8 +91,8 @@ function seller_form_shortcode() {
       }
   </style>
   <form id='sellerForm' method="post" action="">
-      <label for="service">Selecione aqui o serviço do seu interesse:</label>
-      <select name="service" required>
+      <label for="service" id="service-label">Selecione aqui o serviço do seu interesse:</label>
+      <select name="service" id='service' required>
           <option value="Busca da Certidão de Nascimento do Espanhol">Busca da Certidão de Nascimento do Espanhol</option>
           <option value="Assessoria completa para Cidadania Espanhola">Assessoria completa para Cidadania Espanhola (Apenas 100 vagas)</option>
           <option value="Pacote Faça Você Mesmo">Pacote Faça Você Mesmo</option>
@@ -117,6 +117,36 @@ function seller_form_shortcode() {
       <input type="hidden" name="seller" value="">
       <button type="submit" name="submit_seller_form">Agendar Reunião</button>
   </form>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const urlPath = window.location.pathname; // Obtém a URL da página
+      const serviceLabel = document.getElementById("service-label");
+      const serviceSelect = document.getElementById("service");
+
+      if (urlPath.includes("/aula3")) {
+          serviceLabel.textContent = "Selecione aqui o serviço do seu interesse:";
+          serviceSelect.innerHTML = `
+              <option value="Assessoria completa para Cidadania Espanhola">Assessoria completa para Cidadania Espanhola (Apenas 100 vagas)</option>
+              <option value="Pacote Faça Você Mesmo">Pacote Faça Você Mesmo</option>
+          `;
+      } else if (urlPath.includes("/aula2")) {
+          serviceLabel.textContent = "Selecione aqui a opção que melhor se encaixa na sua situação:";
+          serviceSelect.innerHTML = `
+              <option value="Tenho apenas o nome do espanhol e o nome dos pais dele">Tenho apenas o nome do espanhol e o nome dos pais dele</option>
+              <option value="Tenho o nome do espanhol, o nome dos pais, a data de nascimento e a província que ele nasceu">Tenho o nome do espanhol, o nome dos pais, a data de nascimento e a província que ele nasceu</option>
+              <option value="Tenho o nome do espanhol, o nome dos pais, a data de nascimento, a província e também o município que ele nasceu">Tenho o nome do espanhol, o nome dos pais, a data de nascimento, a província e também o município que ele nasceu</option>
+              <option value="Não tenho essas informações do meu ascendente espanhol">Não tenho essas informações do meu ascendente espanhol</option>
+          `;
+      } else if (urlPath.includes("/oferta")) {
+          serviceLabel.textContent = "Selecione aqui o serviço do seu interesse:";
+          serviceSelect.innerHTML = `
+              <option value="Busca da Certidão de Nascimento do Espanhol">Busca da Certidão de Nascimento do Espanhol</option>
+              <option value="Assessoria completa para Cidadania Espanhola">Assessoria completa para Cidadania Espanhola (Apenas 100 vagas)</option>
+              <option value="Pacote Faça Você Mesmo">Pacote Faça Você Mesmo</option>
+          `;
+      }
+  });
+  </script>
   <?php
   return ob_get_clean();
 }
@@ -144,21 +174,21 @@ function process_seller_form() {
         
         $headers = [
             'Content-Type: text/plain; charset=UTF-8',
-            'Cc: ' . $cc // Adiciona o e-mail em cópia
+            'Cc: ' . $cc 
         ];
         
         wp_mail($to, $subject, $message, $headers);
         
-        // Redireciona para a página de agendamento com base no vendedor
-        $redirect_url = site_url("/agendamento?vendedor=" . strtolower($seller));
+        $current_url = $_SERVER['REQUEST_URI'];
+        if (strpos($current_url, '/aula2') !== false) {
+            $redirect_url = site_url("/busca-de-certidao?vendedor=" . strtolower($seller));
+        } else {
+            $redirect_url = site_url("/agendamento?vendedor=" . strtolower($seller));
+        }
+        
         wp_redirect($redirect_url);
         exit();
     }
 }
 
 add_action('init', 'process_seller_form');
-
-function custom_mail_sender_name($original_email_from) {
-  return 'Você Europeu'; // Nome do remetente desejado
-}
-add_filter('wp_mail_from_name', 'custom_mail_sender_name');
